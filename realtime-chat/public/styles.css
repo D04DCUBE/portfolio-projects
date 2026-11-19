@@ -1,0 +1,43 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--ds-font); background: var(--ds-bg); color: var(--ds-fg); line-height: 1.5; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--ds-fg-muted); }
+h1 { margin: 0; letter-spacing: -0.02em; }
+
+.join { max-width: 24rem; margin: 4rem auto; padding: 0 var(--ds-space-5); display: grid; gap: var(--ds-space-4); }
+.join h1 { font-size: 2rem; }
+.join form { display: grid; gap: var(--ds-space-4); }
+.notice { margin: 0; padding: var(--ds-space-3) var(--ds-space-4); border: 1px solid var(--ds-danger); border-radius: var(--ds-radius-md); }
+
+.chat { display: grid; grid-template-rows: auto 1fr auto; height: 100vh; max-width: 62rem; margin: 0 auto; }
+.top { display: flex; align-items: center; gap: var(--ds-space-4); padding: var(--ds-space-3) var(--ds-space-5); border-bottom: 1px solid var(--ds-border); flex-wrap: wrap; }
+.top h1 { font-size: 1.2rem; flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: var(--ds-space-2); padding: 2px var(--ds-space-3); border: 1px solid var(--ds-border); border-radius: 999px; font-size: var(--ds-text-sm); }
+.pill::before { content: ""; width: .6rem; height: .6rem; border-radius: 50%; background: var(--ds-fg-muted); }
+.pill[data-state="open"]::before { background: var(--ds-success); }
+.pill[data-state="reconnecting"]::before, .pill[data-state="connecting"]::before { background: var(--ds-warning); }
+.pill[data-state="offline"]::before, .pill[data-state="closed"]::before { background: var(--ds-danger); }
+.body { display: grid; grid-template-columns: 12rem minmax(0, 1fr); min-height: 0; }
+@media (max-width: 40rem) { .body { grid-template-columns: 1fr; } .users { display: none; } }
+.users { border-right: 1px solid var(--ds-border); padding: var(--ds-space-4); overflow-y: auto; }
+.users h2 { margin: 0 0 var(--ds-space-3); font-size: var(--ds-text-sm); color: var(--ds-fg-muted); text-transform: uppercase; letter-spacing: .04em; }
+.users ul { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-space-2); }
+.users li::before { content: ""; display: inline-block; width: .5rem; height: .5rem; margin-right: var(--ds-space-2); border-radius: 50%; background: var(--ds-success); }
+.users li.me { font-weight: var(--ds-weight-semibold); }
+.stream { position: relative; min-height: 0; display: grid; grid-template-rows: 1fr auto; }
+#log { overflow-y: auto; padding: var(--ds-space-4); display: grid; align-content: start; gap: var(--ds-space-3); }
+#log:focus-visible, textarea:focus-visible { outline: var(--ds-focus-width) solid var(--ds-focus); outline-offset: -2px; }
+.msg { max-width: 80%; min-width: 0; padding: var(--ds-space-2) var(--ds-space-4); border-radius: var(--ds-radius-md); background: var(--ds-surface); border: 1px solid var(--ds-border); overflow-wrap: anywhere; justify-self: start; }
+.msg.mine { justify-self: end; background: var(--ds-primary); color: var(--ds-primary-fg); border-color: transparent; }
+.msg .who { font-size: var(--ds-text-sm); font-weight: var(--ds-weight-semibold); }
+.msg .text { white-space: pre-wrap; }
+.msg .meta { font-size: var(--ds-text-sm); opacity: .8; }
+.msg.sending { opacity: .65; }
+.system { justify-self: center; font-size: var(--ds-text-sm); color: var(--ds-fg-muted); }
+.typing { min-height: 1.6rem; padding: 0 var(--ds-space-4); font-size: var(--ds-text-sm); color: var(--ds-fg-muted); }
+.more { position: absolute; bottom: 4.2rem; left: 50%; transform: translateX(-50%); }
+.composer { display: grid; grid-template-columns: 1fr auto; gap: var(--ds-space-3); padding: var(--ds-space-3) var(--ds-space-4); border-top: 1px solid var(--ds-border); align-items: end; }
+textarea { width: 100%; font: inherit; color: var(--ds-fg); background: var(--ds-bg); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); padding: var(--ds-space-2) var(--ds-space-3); resize: none; }
+[hidden] { display: none !important; }
+.join form ds-button { justify-self: start; }   /* the click area should match the visible button, not the whole grid cell */
+.top ds-button, .composer ds-button { justify-self: start; }

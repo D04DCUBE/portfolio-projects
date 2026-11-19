@@ -1,0 +1,89 @@
+/* Design tokens: the single source of truth for color, space, type and shape.
+   Components never hard-code a color. They read these custom properties,
+   and custom properties pass through Shadow DOM, so one change here themes everything. */
+
+:root {
+  /* Type */
+  --ds-font: Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --ds-font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  --ds-text-sm: 0.875rem;
+  --ds-text-md: 1rem;
+  --ds-text-lg: 1.25rem;
+  --ds-weight-regular: 400;
+  --ds-weight-semibold: 600;
+
+  /* Space (4px scale) */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.5rem;
+  --ds-space-6: 2rem;
+
+  /* Shape */
+  --ds-radius-sm: 4px;
+  --ds-radius-md: 8px;
+  --ds-focus-width: 3px;
+
+  /* Color: light theme (default) */
+  --ds-bg: #ffffff;
+  --ds-surface: #f1f4f9;
+  --ds-fg: #0b1a33;
+  --ds-fg-muted: #4b566b;
+  --ds-border: #6f7a8f;           /* 3:1 or better against bg, for input edges */
+  --ds-primary: #0b1a33;
+  --ds-primary-hover: #1d3358;
+  --ds-primary-fg: #ffffff;
+  --ds-danger: #b3261e;
+  --ds-danger-hover: #8f1d17;
+  --ds-danger-fg: #ffffff;
+  --ds-info: #1f4fa3;
+  --ds-success: #1b6e3a;
+  --ds-warning: #7a5610;
+  --ds-focus: #1f4fa3;
+  --ds-overlay: rgba(11, 26, 51, 0.55);
+}
+
+/* Color: dark theme. Applied by the OS setting, or forced with data-theme. */
+:root[data-theme="dark"] {
+  --ds-bg: #0b1a33;
+  --ds-surface: #14274a;
+  --ds-fg: #f3f6fb;
+  --ds-fg-muted: #b4bfd2;
+  --ds-border: #8a97ae;
+  --ds-primary: #e3b04b;
+  --ds-primary-hover: #f0c46a;
+  --ds-primary-fg: #0b1a33;
+  --ds-danger: #ff8a80;
+  --ds-danger-hover: #ffaaa3;
+  --ds-danger-fg: #0b1a33;
+  --ds-info: #8ab4ff;
+  --ds-success: #6fd08c;
+  --ds-warning: #f0c46a;
+  --ds-focus: #e3b04b;
+  --ds-overlay: rgba(0, 0, 0, 0.65);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ds-bg: #0b1a33;
+    --ds-surface: #14274a;
+    --ds-fg: #f3f6fb;
+    --ds-fg-muted: #b4bfd2;
+    --ds-border: #8a97ae;
+    --ds-primary: #e3b04b;
+    --ds-primary-hover: #f0c46a;
+    --ds-primary-fg: #0b1a33;
+    --ds-danger: #ff8a80;
+    --ds-danger-hover: #ffaaa3;
+    --ds-danger-fg: #0b1a33;
+    --ds-info: #8ab4ff;
+    --ds-success: #6fd08c;
+    --ds-warning: #f0c46a;
+    --ds-focus: #e3b04b;
+    --ds-overlay: rgba(0, 0, 0, 0.65);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}

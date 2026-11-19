@@ -1,0 +1,8 @@
+{
+  "name": "notes-app",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Notes with ranked search and an ask-your-notes answer with citations. Plain Node, no dependencies.",
+  "scripts": { "start": "node server.js", "test": "node --test" }
+}

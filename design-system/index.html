@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design system: tokens and Web Components</title>
+<link rel="stylesheet" href="tokens.css">
+<script type="module" src="components/index.js"></script>
+<style>
+  body { margin: 0; font-family: var(--ds-font); background: var(--ds-bg); color: var(--ds-fg); line-height: 1.6; }
+  header, main { max-width: 52rem; margin: 0 auto; padding: 0 var(--ds-space-5); }
+  header { display: flex; justify-content: space-between; align-items: center; gap: var(--ds-space-4); padding-top: var(--ds-space-5); }
+  h1 { font-size: 1.75rem; margin: 0; letter-spacing: -0.02em; }
+  h2 { font-size: 1.25rem; margin: var(--ds-space-6) 0 var(--ds-space-3); padding-top: var(--ds-space-4); border-top: 1px solid var(--ds-border); }
+  p.lede { color: var(--ds-fg-muted); margin: var(--ds-space-2) 0 0; }
+  .row { display: flex; flex-wrap: wrap; gap: var(--ds-space-3); align-items: center; }
+  .stack { display: grid; gap: var(--ds-space-4); max-width: 26rem; }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(9.5rem, 1fr)); gap: var(--ds-space-3); }
+  .sw { border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); overflow: hidden; font-size: var(--ds-text-sm); }
+  .sw i { display: block; height: 2.5rem; }
+  .sw span { display: block; padding: var(--ds-space-2); }
+  .sw code { font-family: var(--ds-font-mono); font-size: 0.8rem; color: var(--ds-fg-muted); }
+  code { font-family: var(--ds-font-mono); background: var(--ds-surface); padding: 0.1em 0.35em; border-radius: var(--ds-radius-sm); }
+  pre { background: var(--ds-surface); padding: var(--ds-space-4); border-radius: var(--ds-radius-md); overflow-x: auto; font-size: 0.85rem; }
+  footer { max-width: 52rem; margin: var(--ds-space-6) auto; padding: 0 var(--ds-space-5); color: var(--ds-fg-muted); font-size: var(--ds-text-sm); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Design system</h1>
+    <p class="lede">Design tokens and four accessible Web Components. No dependencies.</p>
+  </div>
+  <ds-button id="theme" variant="secondary" size="sm">Switch to dark</ds-button>
+</header>
+
+<main>
+  <h2>Tokens</h2>
+  <p>Components read these CSS custom properties and never hard-code a color. Switch the theme above and everything changes.</p>
+  <div class="swatches" id="swatches"></div>
+
+  <h2>ds-button</h2>
+  <div class="row">
+    <ds-button>Primary</ds-button>
+    <ds-button variant="secondary">Secondary</ds-button>
+    <ds-button variant="ghost">Ghost</ds-button>
+    <ds-button variant="danger">Danger</ds-button>
+    <ds-button size="sm">Small</ds-button>
+    <ds-button disabled>Disabled</ds-button>
+  </div>
+<pre>&lt;ds-button variant="danger"&gt;Delete&lt;/ds-button&gt;</pre>
+
+  <h2>ds-text-field</h2>
+  <div class="stack">
+    <ds-text-field label="Full name" placeholder="Ada Lovelace" hint="As it appears on your ID."></ds-text-field>
+    <ds-text-field label="Email" type="email" required error="Enter a valid email address." value="not-an-email"></ds-text-field>
+    <ds-text-field label="Disabled field" disabled value="Cannot edit"></ds-text-field>
+  </div>
+
+  <h2>ds-alert</h2>
+  <div class="stack" style="max-width:36rem">
+    <ds-alert variant="info" title="Heads up">Your session ends in 5 minutes.</ds-alert>
+    <ds-alert variant="success" title="Saved">Your changes were saved.</ds-alert>
+    <ds-alert variant="warning" title="Check this">The address could not be verified.</ds-alert>
+    <ds-alert variant="error" title="Something went wrong">Try again in a moment.</ds-alert>
+  </div>
+
+  <h2>ds-dialog</h2>
+  <ds-button id="open-dialog" variant="secondary">Delete item...</ds-button>
+  <ds-dialog id="dlg" heading="Delete this item?">
+    <p>This cannot be undone.</p>
+    <ds-button slot="actions" id="cancel" variant="secondary">Cancel</ds-button>
+    <ds-button slot="actions" id="confirm" variant="danger">Delete</ds-button>
+  </ds-dialog>
+
+  <h2>Putting it together: a sign-up form</h2>
+  <form id="demo-form" class="stack">
+    <ds-text-field name="name" label="Full name" required autocomplete="name"></ds-text-field>
+    <ds-text-field name="email" label="Email" type="email" required autocomplete="email" hint="We never show this."></ds-text-field>
+    <ds-button type="submit">Create account</ds-button>
+    <div id="result" aria-live="polite"></div>
+  </form>
+</main>
+
+<footer>Keyboard: Tab to move, Enter or Space to press, Esc to close the dialog.</footer>
+
+<script type="module">
+  const root = document.documentElement;
+  const themeBtn = document.getElementById("theme");
+  themeBtn.addEventListener("click", () => {
+    const dark = root.dataset.theme !== "dark";
+    root.dataset.theme = dark ? "dark" : "light";
+    themeBtn.textContent = dark ? "Switch to light" : "Switch to dark";
+    drawSwatches();
+  });
+
+  const TOKENS = ["ds-bg","ds-surface","ds-fg","ds-fg-muted","ds-border","ds-primary","ds-primary-fg","ds-danger","ds-info","ds-success","ds-warning","ds-focus"];
+  function drawSwatches() {
+    const cs = getComputedStyle(root);
+    const box = document.getElementById("swatches");
+    box.replaceChildren(...TOKENS.map((t) => {
+      const d = document.createElement("div"); d.className = "sw";
+      const i = document.createElement("i"); i.style.background = `var(--${t})`;
+      const s = document.createElement("span");
+      s.textContent = "--" + t + " ";
+      const c = document.createElement("code"); c.textContent = cs.getPropertyValue("--" + t).trim();
+      s.append(document.createElement("br"), c);
+      d.append(i, s); return d;
+    }));
+  }
+  drawSwatches();
+
+  const dlg = document.getElementById("dlg");
+  document.getElementById("open-dialog").addEventListener("click", () => dlg.show());
+  document.getElementById("cancel").addEventListener("click", () => dlg.close());
+  document.getElementById("confirm").addEventListener("click", () => dlg.close());
+
+  const form = document.getElementById("demo-form");
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const names = [...new FormData(form).keys()];
+    const result = document.getElementById("result");
+    result.replaceChildren();
+    const a = document.createElement("ds-alert");
+    a.setAttribute("variant", "success"); a.setAttribute("title", "Form is valid");
+    a.textContent = "Submitted fields: " + names.join(", ") + ". (Values are not shown or stored.)";
+    result.append(a);
+  });
+</script>
+</body>
+</html>

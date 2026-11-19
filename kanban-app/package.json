@@ -1,0 +1,12 @@
+{
+  "name": "kanban-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Full-stack Kanban board with sign-in. Plain Node and JavaScript, no dependencies. A learning project.",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  }
+}

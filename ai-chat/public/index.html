@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AI Chat</title>
+  <link rel="stylesheet" href="/ds/tokens.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1>AI Chat</h1>
+    <p class="muted">Demo model: scripted answers, real streaming UI.</p>
+  </header>
+  <main>
+    <!-- role="log" is a live region; it is kept quiet during streaming (aria-busy) and status changes go to #status. -->
+    <div id="log" role="log" aria-label="Conversation" tabindex="0"></div>
+    <div id="approval" hidden></div>
+    <p id="error" class="error" role="alert" hidden></p>
+    <form id="form" class="composer">
+      <label for="input" class="vh">Message</label>
+      <textarea id="input" rows="2" maxlength="4000" placeholder="Try: hello, weather in Paris, /compare, /artifact, /long, /fail"></textarea>
+      <div id="chips" class="chips" hidden></div>
+      <p id="attach-error" class="attach-error" role="alert" hidden></p>
+      <input id="file" type="file" multiple hidden aria-label="Attach files" accept=".txt,.md,.csv,.json,image/png,image/jpeg,image/webp">
+      <div class="buttons">
+        <ds-button id="send" type="submit" variant="primary">Send</ds-button>
+        <ds-button id="attach" type="button" variant="secondary">Attach</ds-button>
+        <ds-button id="stop" type="button" variant="danger" hidden>Stop</ds-button>
+      </div>
+    </form>
+  </main>
+  <div id="status" class="vh" aria-live="polite"></div>
+</body>
+</html>

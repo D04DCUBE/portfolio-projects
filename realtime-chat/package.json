@@ -1,0 +1,8 @@
+{
+  "name": "realtime-chat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Real-time chat over WebSockets. The WebSocket protocol (RFC 6455) is implemented by hand, no dependencies.",
+  "scripts": { "start": "node server.js", "test": "node --test" }
+}

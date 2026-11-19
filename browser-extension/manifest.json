@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Sign-in Safety Check",
+  "version": "0.2.0",
+  "description": "Learning project: checks the structure of login pages for risky setups. Never reads what you type.",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*/*", "http://*/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle",
+      "all_frames": true
+    }
+  ],
+  "action": {
+    "default_title": "Sign-in Safety Check",
+    "default_popup": "popup.html"
+  }
+}

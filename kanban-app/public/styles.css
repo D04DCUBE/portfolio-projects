@@ -1,0 +1,35 @@
+* { box-sizing: border-box; }
+body { margin: 0; font-family: var(--ds-font); background: var(--ds-bg); color: var(--ds-fg); line-height: 1.5; }
+h1, h2, h3 { margin: 0; }
+.vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.muted { color: var(--ds-fg-muted); }
+
+/* sign in / sign up */
+.auth { max-width: 24rem; margin: 4rem auto; padding: 0 var(--ds-space-5); display: grid; gap: var(--ds-space-4); }
+.auth h1 { font-size: 2rem; letter-spacing: -0.03em; }
+.auth-form { display: grid; gap: var(--ds-space-4); }
+.link { background: none; border: 0; padding: 0; font: inherit; color: var(--ds-info); text-decoration: underline; cursor: pointer; }
+.link:focus-visible { outline: var(--ds-focus-width) solid var(--ds-focus); outline-offset: 2px; }
+
+/* board */
+.top { display: flex; justify-content: space-between; align-items: center; gap: var(--ds-space-4); padding: var(--ds-space-4) var(--ds-space-5); border-bottom: 1px solid var(--ds-border); flex-wrap: wrap; }
+.top h1 { font-size: 1.4rem; letter-spacing: -0.02em; }
+.who { display: flex; align-items: center; gap: var(--ds-space-3); }
+.board { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--ds-space-4); padding: var(--ds-space-5); align-items: start; }
+@media (max-width: 52rem) { .board { grid-template-columns: 1fr; } }
+.column { background: var(--ds-surface); border-radius: var(--ds-radius-md); padding: var(--ds-space-3); }
+.column-head { display: flex; justify-content: space-between; align-items: center; gap: var(--ds-space-2); padding: var(--ds-space-1) var(--ds-space-1) var(--ds-space-3); }
+.column-head h2 { font-size: 1.05rem; }
+.cards { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--ds-space-3); min-height: 3rem; border-radius: var(--ds-radius-md); }
+.cards.over { outline: 2px dashed var(--ds-focus); outline-offset: 2px; }
+.card { background: var(--ds-bg); border: 1px solid var(--ds-border); border-radius: var(--ds-radius-md); padding: var(--ds-space-3); cursor: grab; }
+.card.dragging { opacity: 0.45; }
+.card h3 { font-size: 1rem; overflow-wrap: anywhere; }
+.desc { margin: var(--ds-space-1) 0 0; color: var(--ds-fg-muted); font-size: var(--ds-text-sm); overflow-wrap: anywhere; white-space: pre-wrap; }
+.actions { display: flex; flex-wrap: wrap; gap: var(--ds-space-1); margin-top: var(--ds-space-3); }
+.empty { color: var(--ds-fg-muted); font-size: var(--ds-text-sm); padding: var(--ds-space-2); }
+.dialog-form { display: grid; gap: var(--ds-space-4); }
+.dialog-actions { display: flex; justify-content: flex-end; gap: var(--ds-space-3); }
+
+/* ::part() styles a piece the design system chose to expose (part="button"), without breaking Shadow DOM encapsulation. */
+.actions ds-button::part(button) { padding-inline: var(--ds-space-3); }

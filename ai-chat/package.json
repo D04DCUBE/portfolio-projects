@@ -1,0 +1,8 @@
+{
+  "name": "ai-chat",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Streaming AI chat UI with a pluggable model provider. Runs with a built-in fake model, no API key.",
+  "scripts": { "start": "node server.js", "test": "node --test", "eval": "node eval/run.js" }
+}

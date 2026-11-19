@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Training Runs</title>
+  <link rel="stylesheet" href="/ds/tokens.css">
+  <link rel="stylesheet" href="/styles.css">
+  <script type="module" src="/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <h1>Training runs</h1>
+    <span class="pill" id="pill" data-state="idle">Idle</span>
+    <p class="muted note">Simulated runs. The numbers are made up, the dashboard is real.</p>
+  </header>
+  <div class="layout">
+    <aside class="side" aria-labelledby="runs-h">
+      <h2 id="runs-h">Runs</h2>
+      <p class="muted small" id="pick-note">Tick up to 4 runs to compare.</p>
+      <ul id="runlist" class="runlist"></ul>
+      <details class="newrun">
+        <summary>Start a new run</summary>
+        <form id="newrun" novalidate>
+          <ds-text-field id="f-name" label="Name" value="my-run" required></ds-text-field>
+          <label class="sel">Method
+            <select id="f-method"><option>async-rl</option><option>sync-rl</option></select>
+          </label>
+          <ds-text-field id="f-lr" label="Learning rate" value="3e-5" hint="Try 3e-4 or more to see a run diverge."></ds-text-field>
+          <ds-text-field id="f-batch" label="Batch size" value="64"></ds-text-field>
+          <ds-text-field id="f-steps" label="Steps" value="400"></ds-text-field>
+          <p class="form-error" id="form-error" role="alert" hidden></p>
+          <ds-button type="submit">Start run</ds-button>
+        </form>
+      </details>
+    </aside>
+    <main class="main">
+      <div role="tablist" aria-label="Metric" id="tabs" class="tabs"></div>
+      <div class="controls">
+        <label class="range">Smoothing <input type="range" id="smooth" min="0" max="0.95" step="0.05" value="0.6"> <output id="smooth-out"></output></label>
+        <label class="check"><input type="checkbox" id="log"> Log scale</label>
+      </div>
+      <div id="chart-host" class="chart-host"></div>
+      <ul id="legend" class="legend" aria-label="Legend"></ul>
+      <div id="announce" class="vh" aria-live="polite"></div>
+      <section aria-labelledby="sum-h"><h2 id="sum-h">Summary</h2><div class="scroll"><table id="summary"></table></div></section>
+      <section aria-labelledby="diff-h" id="diff-sec"><h2 id="diff-h">What is different</h2><div class="scroll"><table id="diff"></table></div></section>
+    </main>
+  </div>
+</body>
+</html>
