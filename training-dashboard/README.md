@@ -1,12 +1,13 @@
 # Training run dashboard
 
-A dashboard for comparing model training runs, with live charts. Plain JavaScript and Node, no dependencies.
+A dashboard for comparing model training runs, with live charts. TypeScript on Node, no runtime dependencies and no build step.
 
-The runs are **simulated**. Every metric comes from a made-up formula (`lib/sim.js`), so the curves are not real training data. The dashboard around them is real: live streaming, run comparison, and charts drawn by hand.
+The runs are **simulated**. Every metric comes from a made-up formula (`lib/sim.ts`), so the curves are not real training data. The dashboard around them is real: live streaming, run comparison, and charts drawn by hand.
 
 ```
-node server.js      # http://localhost:3400
-node --test         # 28 tests
+node server.ts      # http://localhost:3400 (needs Node 22.18+, which runs TypeScript directly)
+node --test         # tests
+npx tsc --noEmit    # type-check (needs `typescript`, dev only)
 ```
 
 ## What it does
@@ -27,21 +28,26 @@ node --test         # 28 tests
 - **The chart is drawn by hand** (SVG, about 130 lines). The slow part (axes and lines) is redrawn when data changes; the crosshair is a separate layer, so moving the mouse is cheap. Updates are batched to one draw per animation frame.
 - **Not only color.** Each run has a color and a line style (solid, dashed, dotted, dash-dot), shown in the legend and tooltip. Run status is a word plus a shape.
 - **Keyboard and screen readers.** Focus the chart and use the arrow keys (Shift for 10 steps, Home/End) to read values; the values are announced. The summary and settings tables give the same numbers as text.
-- **One validation file, two places.** `public/js/config.js` checks the new-run form in the browser and the same file checks it again on the server.
+- **One validation file, two places.** `public/js/config.ts` checks the new-run form in the browser and the same file checks it again on the server.
 - **Small API surface.** Creating or stopping a run needs a custom header (`X-Requested-With`), so another site cannot do it from a form. Request bodies are capped at 2 KB. A strict Content-Security-Policy lets the page load only its own scripts and connect only to itself.
 
 ## Layout
 
 | Path | What it is |
 | --- | --- |
-| `lib/sim.js` | The simulated metrics: loss, reward, KL, grad norm, tokens/s, cost, checkpoints, divergence |
-| `lib/runs.js` | Run store, clock, subscribers, limits |
-| `server.js` | Static files, REST API, event stream |
-| `public/js/chart.js` | The SVG chart |
-| `public/js/series.js` | Smoothing, downsampling, ticks, formatting, config diff, summaries |
-| `public/js/config.js` | Settings rules, shared by browser and server |
-| `public/app.js` | State, rendering, live connections |
+| `lib/sim.ts` | The simulated metrics: loss, reward, KL, grad norm, tokens/s, cost, checkpoints, divergence |
+| `lib/runs.ts` | Run store, clock, subscribers, limits |
+| `server.ts` | Static files, REST API, event stream |
+| `public/js/chart.ts` | The SVG chart |
+| `public/js/types.ts` | Shared types (run config, points, events) |
+| `public/js/series.ts` | Smoothing, downsampling, ticks, formatting, config diff, summaries |
+| `public/js/config.ts` | Settings rules, shared by browser and server |
+| `public/app.ts` | State, rendering, live connections |
 | `public/ds/` | The design system components from this repo |
+
+## TypeScript without a build step
+
+Node 22.18+ strips types as it loads `.ts` files, so there is nothing to compile. The server does the same for the browser: it serves each `.ts` file with the types removed (cached). That limits the code to syntax that is only types (`import type`, no enums), which `erasableSyntaxOnly` enforces. `tsc --noEmit` does the checking; the server never runs it.
 
 ## Not done
 

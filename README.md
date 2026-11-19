@@ -1,6 +1,6 @@
 # Portfolio projects
 
-Seven small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies. Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
+Seven small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies (the training dashboard is TypeScript). Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
 
 These are personal learning projects, not products, and none has real users. I built them with AI assistance; the tests and browser checks are how I know they work. The AI chat and training dashboard use a fake model and simulated runs, so they need no keys and show no real data.
 
@@ -12,7 +12,7 @@ These are personal learning projects, not products, and none has real users. I b
 | [`ai-chat`](ai-chat) | A streaming chat UI with Stop, retry, tool approval, validated structured output, attachments and a sandboxed HTML preview | 19 + 26 eval cases |
 | [`realtime-chat`](realtime-chat) | Rooms, presence and typing over WebSockets with a hand-written protocol layer, reconnect and resume | 37 |
 | [`notes-app`](notes-app) | Notes with BM25 search, highlighted snippets and answers that cite their source | 39 |
-| [`training-dashboard`](training-dashboard) | Compare simulated training runs on live charts, with resume after a dropped connection | 28 |
+| [`training-dashboard`](training-dashboard) | Compare simulated training runs on live charts, with resume after a dropped connection. TypeScript | 29 |
 
 ## Run one
 

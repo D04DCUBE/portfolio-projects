@@ -1,29 +1,35 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { createApp } from "../server.js";
-import { createRuns } from "../lib/runs.js";
+import { createApp } from "../server.ts";
+import { createRuns } from "../lib/runs.ts";
+import type { RunsOptions } from "../lib/runs.ts";
+import type { AddressInfo } from "node:net";
+import type { Point, RunSummary } from "../public/js/types.ts";
 
-async function start(opts = {}) {
+// What the tests read back from the event stream.
+interface SseEvent { event: string; id?: string; data: { points: Point[]; status: string } }
+
+async function start(opts: RunsOptions = {}) {
   const runs = createRuns({ tickMs: 0, stepsPerTick: 5, ...opts });
   const server = createApp({ runs, heartbeatMs: 50 });
-  await new Promise((r) => server.listen(0, "127.0.0.1", r));
-  const base = `http://127.0.0.1:${server.address().port}`;
+  await new Promise<void>((r) => server.listen(0, "127.0.0.1", () => r()));
+  const base = `http://127.0.0.1:${(server.address() as AddressInfo).port}`;
   return { runs, base, stop() { server.closeAllConnections(); server.close(); } };
 }
-const post = (base, path, body, headers = {}) => fetch(base + path, { method: "POST", headers: { "X-Requested-With": "dash", "Content-Type": "application/json", ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
+const post = (base: string, path: string, body?: unknown, headers: Record<string, string> = {}) => fetch(base + path, { method: "POST", headers: { "X-Requested-With": "dash", "Content-Type": "application/json", ...headers }, body: body === undefined ? undefined : JSON.stringify(body) });
 const goodRun = { name: "mine", method: "async-rl", lr: 3e-5, batchSize: 64, totalSteps: 100 };
 
 // Read an event stream into a list of {event, id, data} until a condition is met or it ends.
-async function readEvents(res, until) {
-  const out = []; let buf = "";
+async function readEvents(res: Response, until: (ev: SseEvent, all: SseEvent[]) => boolean): Promise<SseEvent[]> {
+  const out: SseEvent[] = []; let buf = "";
   const dec = new TextDecoder();
-  for await (const chunk of res.body) {
+  for await (const chunk of res.body!) {
     buf += dec.decode(chunk, { stream: true });
     let i;
     while ((i = buf.indexOf("\n\n")) >= 0) {
       const block = buf.slice(0, i); buf = buf.slice(i + 2);
-      const ev = {}; for (const line of block.split("\n")) { const m = line.match(/^(\w+): ?(.*)$/); if (m) ev[m[1]] = m[2]; }
-      if (ev.event) { ev.data = JSON.parse(ev.data); out.push(ev); if (until(ev, out)) return out; }
+      const raw: Record<string, string> = {}; for (const line of block.split("\n")) { const m = line.match(/^(\w+): ?(.*)$/); if (m) raw[m[1]] = m[2]; }
+      if (raw.event) { const ev: SseEvent = { event: raw.event, id: raw.id, data: JSON.parse(raw.data) }; out.push(ev); if (until(ev, out)) return out; }
     }
   }
   return out;
@@ -31,18 +37,18 @@ async function readEvents(res, until) {
 
 test("lists runs newest first, with their latest numbers", async () => {
   const t = await start();
-  const { runs } = await (await fetch(t.base + "/api/runs")).json();
+  const { runs } = (await (await fetch(t.base + "/api/runs")).json()) as { runs: RunSummary[] };
   assert.equal(runs.length, 6);
   assert.equal(runs[0].config.name, "async-rl-v2");
   assert.equal(runs[0].status, "running");
-  assert.ok(runs.find((r) => r.config.name === "lr-1e-3").status === "diverged");
-  assert.ok(runs[0].latest.loss > 0);
+  assert.ok(runs.find((r) => r.config.name === "lr-1e-3")?.status === "diverged");
+  assert.ok((runs[0]?.latest?.loss ?? 0) > 0);
   t.stop();
 });
 
 test("a run's detail holds one point per step so far", async () => {
   const t = await start();
-  const { run, points } = await (await fetch(t.base + "/api/runs/r1")).json();
+  const { run, points } = (await (await fetch(t.base + "/api/runs/r1")).json()) as { run: RunSummary; points: Point[] };
   assert.equal(points.length, run.step);
   assert.deepEqual(points.map((p) => p.step), Array.from({ length: run.step }, (_, i) => i + 1));
   assert.equal((await fetch(t.base + "/api/runs/r999")).status, 404);
@@ -93,7 +99,7 @@ test("the stream sends the steps you missed, then new ones, then the end", async
   clearInterval(driver);
   const steps = events.filter((e) => e.event === "points").flatMap((e) => e.data.points.map((p) => p.step));
   assert.deepEqual(steps, Array.from({ length: 46 }, (_, i) => i + 5), "from step 5 (after Last-Event-ID 4) to 50, none twice");
-  assert.equal(events.find((e) => e.event === "status").data.status, "completed");
+  assert.equal(events.find((e) => e.event === "status")?.data.status, "completed");
   t.stop();
 });
 
@@ -101,8 +107,8 @@ test("streaming a finished run sends its tail and ends at once", async () => {
   const t = await start();
   const res = await fetch(t.base + "/api/runs/r5/stream?since=75");
   const events = await readEvents(res, (ev) => ev.event === "end");
-  assert.deepEqual(events.find((e) => e.event === "points").data.points.map((p) => p.step), [76, 77, 78, 79, 80]);
-  assert.equal(events.find((e) => e.event === "status").data.status, "diverged");
+  assert.deepEqual(events.find((e) => e.event === "points")?.data.points.map((p) => p.step), [76, 77, 78, 79, 80]);
+  assert.equal(events.find((e) => e.event === "status")?.data.status, "diverged");
   t.stop();
 });
 
@@ -111,7 +117,7 @@ test("a closed stream stops listening", async () => {
   const { run } = await (await post(t.base, "/api/runs", goodRun)).json();
   const ctrl = new AbortController();
   const res = await fetch(t.base + `/api/runs/${run.id}/stream`, { signal: ctrl.signal });
-  const reader = res.body.getReader(); await reader.read();
+  const reader = res.body!.getReader(); await reader.read();
   ctrl.abort();
   await new Promise((r) => setTimeout(r, 50));
   assert.doesNotThrow(() => t.runs.tick(), "ticking after a client left must not write to a dead socket");
@@ -120,9 +126,22 @@ test("a closed stream stops listening", async () => {
 
 test("serves the page with a strict CSP and blocks paths outside public/", async () => {
   const t = await start();
-  const res = await fetch(t.base + "/");
-  assert.match(res.headers.get("content-security-policy"), /script-src 'self'/);
-  assert.equal((await fetch(t.base + "/js/series.js")).status, 200);
-  assert.equal((await fetch(t.base + "/..%2Fserver.js")).status, 404);
-  t.stop();
+  try {
+    const res = await fetch(t.base + "/");
+    assert.match(res.headers.get("content-security-policy") ?? "", /script-src 'self'/);
+    assert.equal((await fetch(t.base + "/..%2Fserver.ts")).status, 404);
+  } finally { t.stop(); }
+});
+
+test("TypeScript files are served to the browser as plain JavaScript, types removed", async () => {
+  const t = await start();
+  try {
+    const res = await fetch(t.base + "/js/series.ts");
+    assert.equal(res.status, 200);
+    assert.match(res.headers.get("content-type") ?? "", /text\/javascript/);
+    const code = await res.text();
+    assert.match(code, /export function ema\(/, "the function is there");
+    assert.doesNotMatch(code, /import type|interface |: Maybe\[\]/, "the type syntax is gone");
+    assert.equal((await fetch(t.base + "/js/types.ts")).status, 200);
+  } finally { t.stop(); }
 });

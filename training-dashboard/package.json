@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "A dashboard for comparing model training runs, with live charts. Runs are simulated, no dependencies.",
-  "scripts": { "start": "node server.js", "test": "node --test" }
+  "description": "A dashboard for comparing model training runs, with live charts. TypeScript, runs are simulated, no dependencies.",
+  "engines": { "node": ">=22.18" },
+  "scripts": { "start": "node server.ts", "test": "node --test", "typecheck": "tsc --noEmit" }
 }

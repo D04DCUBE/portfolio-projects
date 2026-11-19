@@ -1,11 +1,12 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { plan, metricsAt, rangeMetrics, CHECKPOINT_EVERY } from "../lib/sim.js";
-import { createRuns } from "../lib/runs.js";
-import { validateConfig } from "../public/js/config.js";
+import { plan, metricsAt, rangeMetrics, CHECKPOINT_EVERY } from "../lib/sim.ts";
+import { createRuns } from "../lib/runs.ts";
+import type { RunConfig, RunEvent, Point } from "../public/js/types.ts";
+import { validateConfig } from "../public/js/config.ts";
 
-const base = { name: "t", method: "sync-rl", lr: 3e-5, batchSize: 64, totalSteps: 300, seed: 1 };
-const std = (a) => { const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
+const base: RunConfig = { name: "t", method: "sync-rl", lr: 3e-5, batchSize: 64, totalSteps: 300, seed: 1 };
+const std = (a: number[]): number => { const m = a.reduce((x, y) => x + y, 0) / a.length; return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / a.length); };
 
 test("the same config and step always give the same numbers", () => {
   assert.deepEqual(metricsAt(base, 42), metricsAt(base, 42));
@@ -20,7 +21,7 @@ test("a range equals the steps computed one by one, so a resume cannot drift", (
 
 test("loss falls and reward rises over a healthy run", () => {
   const early = rangeMetrics(base, 1, 10), late = rangeMetrics(base, 291, 300);
-  const avg = (rows, k) => rows.reduce((s, r) => s + r[k], 0) / rows.length;
+  const avg = (rows: Point[], k: "loss" | "reward"): number => rows.reduce((s, r) => s + r[k], 0) / rows.length;
   assert.ok(avg(late, "loss") < avg(early, "loss") - 0.5);
   assert.ok(avg(late, "reward") > avg(early, "reward") + 0.3);
 });
@@ -29,7 +30,7 @@ test("a high learning rate diverges: the run ends early with a huge loss", () =>
   const cfg = { ...base, lr: 1e-3, totalSteps: 600 };
   const p = plan(cfg);
   assert.equal(p.diverges, true);
-  assert.equal(p.endStep, p.divergeAt + 12);
+  assert.equal(p.endStep, (p.divergeAt ?? 0) + 12);
   assert.ok(metricsAt(cfg, p.endStep).loss > 10);
   assert.equal(plan(base).diverges, false);
   assert.equal(plan(base).endStep, 300);
@@ -40,7 +41,7 @@ test("a run too short to reach its divergence point just finishes", () => {
 });
 
 test("a bigger batch gives a steadier curve", () => {
-  const resid = (cfg) => std(rangeMetrics(cfg, 200, 300).map((r) => r.reward));
+  const resid = (cfg: RunConfig): number => std(rangeMetrics(cfg, 200, 300).map((r) => r.reward));
   assert.ok(resid({ ...base, batchSize: 256 }) < resid({ ...base, batchSize: 16 }));
 });
 
@@ -59,8 +60,8 @@ test("cost is steps x batch x price, and eval scores appear only at checkpoints"
 test("the run store advances running runs, announces new steps and finishes them", () => {
   const runs = createRuns({ tickMs: 0, stepsPerTick: 25, seeded: false });
   const run = runs.create({ ...base, totalSteps: 60 });
-  const seen = []; const statuses = [];
-  runs.subscribe(run.id, (ev) => (ev.type === "points" ? seen.push(...ev.points.map((p) => p.step)) : statuses.push(ev.status)));
+  const seen: number[] = []; const statuses: string[] = [];
+  runs.subscribe(run.id, (ev: RunEvent) => { if (ev.type === "points") seen.push(...ev.points.map((p) => p.step)); else statuses.push(ev.status); });
   runs.tick(); runs.tick(); runs.tick();
   assert.equal(seen.length, 60);
   assert.deepEqual(seen, Array.from({ length: 60 }, (_, i) => i + 1));
@@ -72,9 +73,9 @@ test("the run store advances running runs, announces new steps and finishes them
 test("the store limits how many runs train at once, and Stop ends one", () => {
   const runs = createRuns({ tickMs: 0, seeded: false, maxActive: 2 });
   const a = runs.create(base); runs.create(base);
-  assert.throws(() => runs.create(base), (e) => e.code === "too_many");
+  assert.throws(() => runs.create(base), (e: Error & { code?: string }) => e.code === "too_many");
   runs.stop(a.id);
-  assert.equal(runs.get(a.id).status, "stopped");
+  assert.equal(runs.get(a.id)?.status, "stopped");
   assert.doesNotThrow(() => runs.create(base));
 });
 

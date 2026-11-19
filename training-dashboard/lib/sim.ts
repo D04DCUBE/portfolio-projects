@@ -3,31 +3,33 @@
 // The curves are made up, but they follow the shapes people look for: loss decays, reward saturates,
 // a learning rate that is too high blows up, and a bigger batch gives less noise.
 
+import type { RunConfig, Plan, Point } from "../public/js/types.ts";
+
 export const CHECKPOINT_EVERY = 50;
 const LR_OPT = 3e-5;
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const round = (v, d) => { const m = 10 ** d; return Math.round(v * m) / m; };
+const clamp = (v: number, a: number, b: number): number => Math.min(b, Math.max(a, v));
+const round = (v: number, d: number): number => { const m = 10 ** d; return Math.round(v * m) / m; };
 
 // Deterministic noise: hash (seed, step, channel) to a number in [0, 1), then to a normal sample.
-function hash(a, b, c) {
+function hash(a: number, b: number, c: number): number {
   let h = Math.imul(a ^ 0x9e3779b9, 0x85ebca6b) ^ Math.imul(b + 0x7f4a7c15, 0xc2b2ae35) ^ Math.imul(c + 0x165667b1, 0x27d4eb2f);
   h ^= h >>> 15; h = Math.imul(h, 0x2c1b3c6d); h ^= h >>> 12; h = Math.imul(h, 0x297a2d39); h ^= h >>> 15;
   return (h >>> 0) / 4294967296;
 }
-function gauss(seed, step, ch) {
+function gauss(seed: number, step: number, ch: number): number {
   const u1 = Math.max(hash(seed, step, ch * 2 + 1), 1e-12), u2 = hash(seed, step, ch * 2 + 2);
   return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
 }
 
 // When does this run end, and does it end badly? A learning rate at or above 2e-4 may diverge before the last step.
-export function plan(config) {
+export function plan(config: RunConfig): Plan {
   const { lr, totalSteps } = config;
   const at = lr >= 2e-4 ? Math.round(40 + 700 * (2e-4 / lr) ** 2) : null;
   const diverges = at !== null && at + 12 < totalSteps;
   return { diverges, divergeAt: diverges ? at : null, endStep: diverges ? at + 12 : totalSteps };
 }
 
-export function metricsAt(config, step) {
+export function metricsAt(config: RunConfig, step: number): Point {
   const { seed, lr, batchSize, method } = config;
   const { divergeAt } = plan(config);
   const isAsync = method === "async-rl";
@@ -35,7 +37,7 @@ export function metricsAt(config, step) {
   const k = 0.006 * clamp(Math.sqrt(r), 0.35, 2.2) * (isAsync ? 1.12 : 1);
   const noise = 1 / Math.sqrt(batchSize / 64);          // a bigger batch averages out noise
   const decay = Math.exp(-k * step);
-  const g = (ch) => gauss(seed, step, ch);
+  const g = (ch: number): number => gauss(seed, step, ch);
 
   let loss = 0.35 + 1.65 * decay + 0.05 * noise * (0.4 + decay) * g(1);
   const ceiling = clamp(0.72 + 0.03 * Math.log2(batchSize / 64) - 0.05 * Math.max(0, Math.log2(r) - 1), 0.45, 0.9);
@@ -56,8 +58,8 @@ export function metricsAt(config, step) {
   };
 }
 
-export function rangeMetrics(config, from, to) {
-  const end = plan(config).endStep, out = [];
+export function rangeMetrics(config: RunConfig, from: number, to: number): Point[] {
+  const end = plan(config).endStep, out: Point[] = [];
   for (let s = Math.max(1, from); s <= Math.min(to, end); s++) out.push(metricsAt(config, s));
   return out;
 }

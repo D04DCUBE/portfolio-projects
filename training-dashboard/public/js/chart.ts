@@ -1,23 +1,31 @@
 // A hand-written SVG line chart: log or linear axis, several series, hover and keyboard crosshair.
 // The slow part (axes, lines) is drawn when data changes; the crosshair is a separate layer that moves cheaply.
-import { downsample, niceTicks, logTicks, formatNum } from "./series.js";
+import { downsample, niceTicks, logTicks, formatNum } from "./series.ts";
+import type { Maybe } from "./series.ts";
+
+export interface ChartSeries { id: string; label: string; color: string; dash: string; values: Maybe[]; raw: Maybe[] | null }
+export interface ChartMarker { step: number; label: string }
+export interface ChartData { series: ChartSeries[]; markers: ChartMarker[]; logY: boolean; label: string }
+interface Scale { x: (step: number) => number; y: (v: number) => number; maxStep: number; pw: number }
 
 const NS = "http://www.w3.org/2000/svg";
-const el = (name, attrs = {}, ...kids) => {
+const el = (name: string, attrs: Record<string, string | number> = {}, ...kids: (Node | string)[]): SVGElement => {
   const e = document.createElementNS(NS, name);
-  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, v);
+  for (const [k, v] of Object.entries(attrs)) e.setAttribute(k, String(v));
   e.append(...kids);
   return e;
 };
 
-export function createChart(host, { onAnnounce = () => {} } = {}) {
+export function createChart(host: HTMLElement, { onAnnounce = (_text: string) => {} }: { onAnnounce?: (text: string) => void } = {}) {
   const svg = el("svg", { class: "chart", role: "img", tabindex: "0" });
   const tip = document.createElement("div");
   tip.className = "tip"; tip.hidden = true;
   host.append(svg, tip);
 
-  let data = { series: [], markers: [], logY: false, label: "" };
-  let width = 0, height = 300, hover = null, scale = null;
+  let data: ChartData = { series: [], markers: [], logY: false, label: "" };
+  let width = 0, height = 300;
+  let hover: number | null = null;
+  let scale: Scale | null = null;
   const M = { l: 52, r: 14, t: 14, b: 30 };
 
   function draw() {
@@ -36,11 +44,11 @@ export function createChart(host, { onAnnounce = () => {} } = {}) {
     }
     if (!Number.isFinite(lo)) { svg.append(el("text", { x: width / 2, y: height / 2, "text-anchor": "middle", class: "axis" }, "Select a run to see its curve")); return; }
     if (hi === lo) { hi += 1; lo -= data.logY ? lo / 2 : 1; }
-    const ty = data.logY ? Math.log10 : (v) => v;
+    const ty = data.logY ? Math.log10 : (v: number): number => v;
     let yMin = ty(lo), yMax = ty(hi);
     const pad = (yMax - yMin) * 0.06; yMin -= pad; yMax += pad;
-    const x = (step) => M.l + ((step - 1) / (maxStep - 1)) * pw;
-    const y = (v) => M.t + (1 - (ty(v) - yMin) / (yMax - yMin)) * ph;
+    const x = (step: number): number => M.l + ((step - 1) / (maxStep - 1)) * pw;
+    const y = (v: number): number => M.t + (1 - (ty(v) - yMin) / (yMax - yMin)) * ph;
     scale = { x, y, maxStep, pw };
 
     const yTicks = data.logY ? logTicks(10 ** yMin, 10 ** yMax) : niceTicks(yMin, yMax, 5);
@@ -58,8 +66,9 @@ export function createChart(host, { onAnnounce = () => {} } = {}) {
         el("text", { x: Math.min(px + 5, width - 60), y: M.t + 12, class: "marker-label" }, m.label));
     }
     for (const s of data.series) {
-      for (const [vals, cls] of s.raw ? [[s.raw, "line raw"], [s.values, "line"]] : [[s.values, "line"]]) {
-        const pts = vals.map((v, i) => ({ x: i + 1, y: v })).filter((p) => p.y != null && Number.isFinite(p.y) && (!data.logY || p.y > 0));
+      const layers: [Maybe[], string][] = s.raw ? [[s.raw, "line raw"], [s.values, "line"]] : [[s.values, "line"]];
+      for (const [vals, cls] of layers) {
+        const pts = vals.flatMap((v, i) => (v != null && Number.isFinite(v) && (!data.logY || v > 0) ? [{ x: i + 1, y: v }] : []));
         const shown = downsample(pts, Math.max(60, Math.round(pw)));
         const path = el("path", { d: shown.map((p, i) => `${i ? "L" : "M"}${x(p.x).toFixed(1)} ${y(p.y).toFixed(1)}`).join(""), class: cls, stroke: s.color });
         if (s.dash) path.setAttribute("stroke-dasharray", s.dash);
@@ -71,7 +80,7 @@ export function createChart(host, { onAnnounce = () => {} } = {}) {
     drawHover();
   }
 
-  function valueAt(s, step) { return s.values[step - 1]; }
+  function valueAt(s: ChartSeries, step: number): Maybe { return s.values[step - 1]; }
 
   function drawHover() {
     const g = svg.querySelector(".hover");
@@ -95,15 +104,15 @@ export function createChart(host, { onAnnounce = () => {} } = {}) {
     tip.style.left = `${Math.max(4, Math.min(px + 12, width - tw - 4))}px`;
   }
 
-  function stepFromEvent(e) {
+  function stepFromEvent(e: PointerEvent): number | null {
     if (!scale) return null;
     const r = svg.getBoundingClientRect();
     const frac = (e.clientX - r.left - M.l) / scale.pw;
     return Math.min(scale.maxStep, Math.max(1, Math.round(1 + frac * (scale.maxStep - 1))));
   }
-  svg.addEventListener("pointermove", (e) => { const s = stepFromEvent(e); if (s !== hover) { hover = s; drawHover(); } });
+  svg.addEventListener("pointermove", (e: PointerEvent) => { const s = stepFromEvent(e); if (s !== hover) { hover = s; drawHover(); } });
   svg.addEventListener("pointerleave", () => { hover = null; drawHover(); });
-  svg.addEventListener("keydown", (e) => {
+  svg.addEventListener("keydown", (e: KeyboardEvent) => {
     if (!scale) return;
     const jump = e.shiftKey ? 10 : 1;
     let next = hover ?? scale.maxStep;
@@ -111,12 +120,13 @@ export function createChart(host, { onAnnounce = () => {} } = {}) {
     else if (e.key === "Home") next = 1; else if (e.key === "End") next = scale.maxStep;
     else if (e.key === "Escape") { hover = null; drawHover(); return; } else return;
     e.preventDefault();
-    hover = Math.min(scale.maxStep, Math.max(1, next));
+    const at = Math.min(scale.maxStep, Math.max(1, next));
+    hover = at;
     drawHover();
-    onAnnounce(`Step ${hover}. ` + data.series.map((s) => `${s.label} ${formatNum(valueAt(s, hover))}`).join(", "));
+    onAnnounce(`Step ${at}. ` + data.series.map((s) => `${s.label} ${formatNum(valueAt(s, at))}`).join(", "));
   });
 
   new ResizeObserver((entries) => { const w = Math.round(entries[0].contentRect.width); if (w !== width) { width = w; draw(); } }).observe(host);
 
-  return { update(next) { data = next; draw(); } };
+  return { update(next: ChartData): void { data = next; draw(); } };
 }
