@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Eval Lab</title>
+<style>
+  :root {
+    --bg: #fafaf8; --panel: #ffffff; --ink: #1d1d1b; --muted: #5f5f5a; --line: #dcdcd5;
+    --pass: #0b6b3a; --pass-bg: #e3f3e9; --fail: #a4201a; --fail-bg: #fbe6e4; --accent: #1f4fb4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #151514; --panel: #1f1f1d; --ink: #ecece6; --muted: #a2a29a; --line: #3a3a36;
+      --pass: #6fd49b; --pass-bg: #163524; --fail: #ff9a92; --fail-bg: #3b1a18; --accent: #8fb0ff; }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.5 system-ui, sans-serif; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 28px 0 8px; }
+  .sub { color: var(--muted); margin: 0 0 20px; }
+  .pickers { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  label { display: block; font-size: .85rem; color: var(--muted); margin-bottom: 4px; }
+  select, button { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; }
+  select { width: 100%; }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--accent); }
+  :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+  #summary { margin: 16px 0 0; font-weight: 600; }
+  .tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; }
+  th, td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: .8rem; color: var(--muted); font-weight: 600; }
+  tr:last-child td { border-bottom: 0; }
+  tr[aria-current="true"] td { background: color-mix(in srgb, var(--accent) 10%, transparent); }
+  .case-btn { border: 0; padding: 0; background: none; color: var(--accent); text-decoration: underline; text-align: left; }
+  .tag { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: .85rem; font-weight: 600; white-space: nowrap; }
+  .tag.pass { background: var(--pass-bg); color: var(--pass); }
+  .tag.fail { background: var(--fail-bg); color: var(--fail); }
+  .tag.none { border: 1px dashed var(--line); color: var(--muted); }
+  .change-regressed { color: var(--fail); font-weight: 700; }
+  .change-fixed { color: var(--pass); font-weight: 700; }
+  .muted { color: var(--muted); }
+  .desc { color: var(--muted); font-size: .9rem; }
+  .controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 8px 0 12px; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px; }
+  .col { border: 1px solid var(--line); border-radius: 8px; background: var(--panel); padding: 12px 14px; }
+  .col h3 { margin: 0 0 8px; font-size: 1rem; }
+  ol.steps { list-style: none; margin: 0; padding: 0; }
+  ol.steps li { border-left: 3px solid var(--line); padding: 4px 0 4px 10px; margin: 0 0 6px; }
+  ol.steps li.now { border-left-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+  ol.steps li.future { opacity: .35; }
+  .kind { font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  code, pre { font: .85rem/1.4 ui-monospace, Menlo, Consolas, monospace; }
+  pre { margin: 2px 0 0; white-space: pre-wrap; word-break: break-word; }
+  ul.graders { list-style: none; padding: 0; margin: 12px 0 0; }
+  ul.graders li { padding: 4px 0; border-top: 1px solid var(--line); }
+  .err { color: var(--fail); }
+  @media (max-width: 600px) {
+    table { min-width: 0; }
+    th, td { padding: 8px 6px; }
+    .tag { padding: 0 6px; font-size: .8rem; }
+    td:last-child { font-size: .85rem; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Agent Eval Lab</h1>
+  <p class="sub">Compare two runs of the same eval suite, then step through what each agent did. The agents are hand-written stand-ins, so no keys or network are needed.</p>
+
+  <div class="pickers">
+    <div><label for="run-a">Baseline (A)</label><select id="run-a"></select></div>
+    <div><label for="run-b">Candidate (B)</label><select id="run-b"></select></div>
+  </div>
+  <p id="summary" role="status"></p>
+  <p id="problem" class="err" hidden></p>
+
+  <h2>Cases</h2>
+  <div class="tablewrap">
+    <table>
+      <thead><tr><th scope="col">Case</th><th scope="col">A</th><th scope="col">B</th><th scope="col">Change</th></tr></thead>
+      <tbody id="cases"></tbody>
+    </table>
+  </div>
+
+  <section id="detail" hidden>
+    <h2 id="detail-title" tabindex="-1"></h2>
+    <p id="detail-desc" class="desc"></p>
+    <p id="detail-prompt"></p>
+    <div class="controls">
+      <button id="back" type="button">Back</button>
+      <button id="next" type="button">Next step</button>
+      <button id="all" type="button">Show all</button>
+      <span id="stepinfo" class="muted" aria-live="polite"></span>
+    </div>
+    <div class="cols" id="cols"></div>
+  </section>
+</div>
+<script type="module" src="/app.ts"></script>
+</body>
+</html>

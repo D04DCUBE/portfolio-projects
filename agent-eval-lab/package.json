@@ -1,0 +1,14 @@
+{
+  "name": "agent-eval-lab",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An MCP server, a small agent loop, an eval suite and a run viewer. TypeScript, no dependencies, no API keys.",
+  "engines": { "node": ">=22.18" },
+  "scripts": {
+    "eval": "node src/run-evals.ts",
+    "viewer": "node viewer/server.ts",
+    "test": "node --test",
+    "typecheck": "tsc --noEmit"
+  }
+}

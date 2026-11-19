@@ -1,6 +1,6 @@
 # Portfolio projects
 
-Seven small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies (the training dashboard is TypeScript). Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
+Eight small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies (the training dashboard is TypeScript). Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
 
 These are personal learning projects, not products, and none has real users. I built them with AI assistance; the tests and browser checks are how I know they work. The AI chat and training dashboard use a fake model and simulated runs, so they need no keys and show no real data.
 
@@ -13,6 +13,7 @@ These are personal learning projects, not products, and none has real users. I b
 | [`realtime-chat`](realtime-chat) | Rooms, presence and typing over WebSockets with a hand-written protocol layer, reconnect and resume | 37 |
 | [`notes-app`](notes-app) | Notes with BM25 search, highlighted snippets and answers that cite their source | 39 |
 | [`training-dashboard`](training-dashboard) | Compare simulated training runs on live charts, with resume after a dropped connection. TypeScript | 29 |
+| [`agent-eval-lab`](agent-eval-lab) | An MCP server, an agent loop, an eval suite, and a viewer that compares two runs. TypeScript | 32 |
 
 ## Run one
 
