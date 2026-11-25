@@ -34,6 +34,7 @@ test("a wrong PIN is refused with a plain message, the right one signs in", asyn
   await pin("0000");
   await page.getByText("That PIN was not recognised.").waitFor();
   await signIn();
+  await page.getByText("That PIN was not recognised.").waitFor({ state: "detached", timeout: 6000 });
   await shot("02-queue");
   assert.ok(await page.getByText("Maya R.").isVisible());
 });
