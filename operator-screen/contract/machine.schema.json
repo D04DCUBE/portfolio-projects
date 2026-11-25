@@ -1,0 +1,95 @@
+{
+  "$comment": "The contract between the screen and the machine. In the real product the machine side is Rust; here it is this file. Types are generated from it (npm run contract) and the build fails when src/contract.gen.ts has drifted.",
+  "$defs": {
+    "Drawer": { "enum": ["closed", "open"] },
+    "Severity": { "enum": ["info", "warning", "critical"] },
+    "AlertKind": { "enum": ["low_stock", "fault", "rx_exception", "drawer_unexpected"] },
+    "ExceptionReason": { "enum": ["out_of_stock", "label_unreadable", "other"] },
+    "PrescriptionStatus": { "enum": ["waiting", "in_progress", "done", "exception", "cancelled"] },
+    "ActiveStep": { "enum": ["picking", "remove_items"] },
+    "StockKind": { "enum": ["drug", "consumable"] },
+    "RejectReason": {
+      "enum": ["bad_pin", "not_signed_in", "already_signed_in", "fault_active", "task_active", "not_found", "wrong_status", "insufficient_stock", "bad_amount"]
+    },
+    "Health": {
+      "oneOf": [
+        { "type": "object", "properties": { "status": { "const": "ok" } }, "required": ["status"] },
+        { "type": "object", "properties": { "status": { "const": "fault" }, "code": { "type": "string" }, "message": { "type": "string" } }, "required": ["status", "code", "message"] }
+      ]
+    },
+    "Session": { "type": "object", "properties": { "user": { "type": "string" } }, "required": ["user"] },
+    "Prescription": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "patient": { "type": "string" },
+        "drug": { "type": "string" },
+        "slot": { "type": "string" },
+        "qty": { "type": "integer" },
+        "status": { "$ref": "PrescriptionStatus" },
+        "exceptionReason": { "$ref": "ExceptionReason", "nullable": true }
+      },
+      "required": ["id", "patient", "drug", "slot", "qty", "status", "exceptionReason"]
+    },
+    "ActiveTask": {
+      "type": "object",
+      "properties": { "prescriptionId": { "type": "string" }, "step": { "$ref": "ActiveStep" } },
+      "required": ["prescriptionId", "step"]
+    },
+    "StockItem": {
+      "type": "object",
+      "properties": {
+        "slot": { "type": "string" },
+        "name": { "type": "string" },
+        "kind": { "$ref": "StockKind" },
+        "count": { "type": "integer" },
+        "par": { "type": "integer" },
+        "capacity": { "type": "integer" }
+      },
+      "required": ["slot", "name", "kind", "count", "par", "capacity"]
+    },
+    "Alert": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "kind": { "$ref": "AlertKind" },
+        "severity": { "$ref": "Severity" },
+        "text": { "type": "string" },
+        "needsAck": { "type": "boolean" }
+      },
+      "required": ["id", "kind", "severity", "text", "needsAck"]
+    },
+    "MachineState": {
+      "type": "object",
+      "properties": {
+        "version": { "type": "integer" },
+        "session": { "$ref": "Session", "nullable": true },
+        "drawer": { "$ref": "Drawer" },
+        "health": { "$ref": "Health" },
+        "active": { "$ref": "ActiveTask", "nullable": true },
+        "queue": { "type": "array", "items": { "$ref": "Prescription" } },
+        "stock": { "type": "array", "items": { "$ref": "StockItem" } },
+        "alerts": { "type": "array", "items": { "$ref": "Alert" } }
+      },
+      "required": ["version", "session", "drawer", "health", "active", "queue", "stock", "alerts"]
+    },
+    "Command": {
+      "oneOf": [
+        { "type": "object", "properties": { "type": { "const": "signIn" }, "pin": { "type": "string" } }, "required": ["type", "pin"] },
+        { "type": "object", "properties": { "type": { "const": "signOut" } }, "required": ["type"] },
+        { "type": "object", "properties": { "type": { "const": "startPrescription" }, "id": { "type": "string" } }, "required": ["type", "id"] },
+        { "type": "object", "properties": { "type": { "const": "reportException" }, "id": { "type": "string" }, "reason": { "$ref": "ExceptionReason" } }, "required": ["type", "id", "reason"] },
+        { "type": "object", "properties": { "type": { "const": "retryPrescription" }, "id": { "type": "string" } }, "required": ["type", "id"] },
+        { "type": "object", "properties": { "type": { "const": "cancelPrescription" }, "id": { "type": "string" } }, "required": ["type", "id"] },
+        { "type": "object", "properties": { "type": { "const": "restock" }, "slot": { "type": "string" }, "count": { "type": "integer" } }, "required": ["type", "slot", "count"] },
+        { "type": "object", "properties": { "type": { "const": "ackAlert" }, "id": { "type": "string" } }, "required": ["type", "id"] }
+      ]
+    },
+    "ServerMessage": {
+      "oneOf": [
+        { "type": "object", "properties": { "type": { "const": "snapshot" }, "state": { "$ref": "MachineState" } }, "required": ["type", "state"] },
+        { "type": "object", "properties": { "type": { "const": "rejected" }, "command": { "type": "string" }, "reason": { "$ref": "RejectReason" } }, "required": ["type", "command", "reason"] }
+      ]
+    }
+  }
+}

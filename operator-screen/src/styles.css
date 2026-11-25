@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+/* Design tokens. Components use these names only; scripts/lint-tokens.ts fails the build on raw colours or pixel sizes elsewhere. */
+@theme {
+  --color-bg: #0b1220;
+  --color-surface: #131c30;
+  --color-surface-2: #1c2842;
+  --color-line: #33425f;
+  --color-ink: #f3f6fc;
+  --color-muted: #aab6cf;
+  --color-accent: #4f8cff;
+  --color-accent-ink: #04122e;
+  --color-ok: #3ddc97;
+  --color-warn: #ffc247;
+  --color-warn-ink: #2b1d00;
+  --color-danger: #ff6b6b;
+  --color-danger-ink: #2e0505;
+
+  --spacing-touch: 3rem;   /* 48px: the smallest allowed target */
+  --spacing-key: 4.5rem;   /* 72px: the default for buttons and rows */
+  --spacing-gap: 0.75rem;  /* 12px: minimum space between targets */
+  --spacing-dot: 1.5rem;   /* decorative marks, not targets */
+  --spacing-bar: 1.5rem;
+
+  --text-glance: 1.5rem;
+  --text-glance--line-height: 2rem;
+  --text-hero: 2.25rem;
+  --text-hero--line-height: 2.5rem;
+  --text-body: 1.25rem;
+  --text-body--line-height: 1.75rem;
+
+  --radius-panel: 1rem;
+}
+
+html, body, #root { height: 100%; }
+body {
+  margin: 0;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: var(--text-body);
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;       /* no double-tap zoom */
+  overscroll-behavior: none;
+  -webkit-tap-highlight-color: transparent;
+}
+@layer base {
+  button { font: inherit; color: inherit; }
+  button:focus-visible { outline: 4px solid var(--color-ink); outline-offset: 2px; }
+  button:disabled { opacity: 0.45; }
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { animation: spin 1.2s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Machine simulator</title>
+<link rel="stylesheet" href="/app.css">
+</head>
+<body class="p-6">
+<h1 class="mb-2 text-hero font-bold">Machine simulator</h1>
+<p class="mb-6 text-body text-muted">The physical world. These are things that happen on the machine, not taps on the screen. Open the operator screen in another tab.</p>
+<div class="flex max-w-3xl flex-col gap-gap">
+  <button class="min-h-key rounded-panel bg-surface-2 text-glance" data-sim="drawer-open">Drawer opens</button>
+  <button class="min-h-key rounded-panel bg-surface-2 text-glance" data-sim="drawer-close">Drawer closes</button>
+  <button class="min-h-key rounded-panel bg-danger text-glance text-danger-ink" data-sim="fault">Gripper jam (fault E42)</button>
+  <button class="min-h-key rounded-panel bg-surface-2 text-glance" data-sim="clear-fault">Service clears the fault</button>
+  <button class="min-h-key rounded-panel bg-surface-2 text-glance" data-sim="reset">Reset the machine</button>
+</div>
+<p id="result" class="mt-6 text-body text-muted" role="status"></p>
+<script type="module" src="/sim.js"></script>
+</body>
+</html>

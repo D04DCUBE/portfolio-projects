@@ -1,6 +1,6 @@
 # Portfolio projects
 
-Eight small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies (the training dashboard is TypeScript). Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
+Nine small projects by [Parshuram Hadimani](https://parshuramhadimani.com), a front-end engineer. Each is a working app with automated tests, and most use plain JavaScript and Node with no dependencies (the training dashboard and agent eval lab are TypeScript, and the operator screen uses React 19 and Tailwind). Each has a short write-up on the [blog](https://parshuramhadimani.com/blog/) about what I learned and where it falls short.
 
 These are personal learning projects, not products, and none has real users. I built them with AI assistance; the tests and browser checks are how I know they work. The AI chat and training dashboard use a fake model and simulated runs, so they need no keys and show no real data.
 
@@ -14,6 +14,7 @@ These are personal learning projects, not products, and none has real users. I b
 | [`notes-app`](notes-app) | Notes with BM25 search, highlighted snippets and answers that cite their source | 39 |
 | [`training-dashboard`](training-dashboard) | Compare simulated training runs on live charts, with resume after a dropped connection. TypeScript | 29 |
 | [`agent-eval-lab`](agent-eval-lab) | An MCP server, an agent loop, an eval suite, and a viewer that compares two runs. TypeScript | 32 |
+| [`operator-screen`](operator-screen) | A touch-only screen for a simulated machine: React 19, Tailwind 4, WebSocket state owned by the machine, a generated contract, three-layer alerts | 47 + 11 browser |
 
 ## Run one
 
