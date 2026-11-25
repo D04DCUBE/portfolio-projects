@@ -48,7 +48,7 @@ npm run typecheck
 
 Choices worth a sentence:
 
-- **The reducer is pure and the screen never imports it.** All 22 reducer tests run with no server and no browser. Rejected commands return the same state object, so a bad tap cannot bump the version.
+- **The reducer is pure and the screen never imports it.** All the reducer tests run with no server and no browser. Rejected commands return the same state object, so a bad tap cannot bump the version.
 - **Commands can be refused, and the screen says why.** The machine answers a rejected command with a reason (`insufficient_stock`, `fault_active`, and so on), and the screen shows it in plain words for four seconds. The screen never decides for itself that something is allowed.
 - **Wire data is checked at runtime.** Types vanish at runtime, so both directions parse what arrives (`parseCommand`, `parseServerMessage`).
 - **The simulator accepts requests from localhost only**, the static server serves a fixed list of files, and the page has a strict Content Security Policy.
