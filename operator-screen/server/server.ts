@@ -15,6 +15,7 @@ const ASSETS: Readonly<Record<string, { file: string; type: string }>> = {
   "/app.js": { file: "app.js", type: "text/javascript; charset=utf-8" },
   "/app.css": { file: "app.css", type: "text/css; charset=utf-8" },
   "/sim": { file: "sim.html", type: "text/html; charset=utf-8" },
+  "/sim.js": { file: "sim.js", type: "text/javascript; charset=utf-8" },
 };
 const CSP = "default-src 'self'; connect-src 'self' ws: wss:; img-src 'self' data:; style-src 'self'; script-src 'self'; base-uri 'none'; form-action 'none'";
 
@@ -46,13 +47,24 @@ export async function startServer(opts: { port?: number } = {}): Promise<Running
     res.setHeader("X-Content-Type-Options", "nosniff");
     res.setHeader("Cache-Control", "no-store");
 
+    const local = ["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress ?? "");
+    // Read-only view of the machine for tests and the simulator. Localhost only, like the rest of /sim.
+    if (req.method === "GET" && url.pathname === "/sim/state") {
+      if (!local) { res.writeHead(403).end(); return; }
+      res.writeHead(200, { "Content-Type": "application/json" }).end(JSON.stringify(state));
+      return;
+    }
     if (req.method === "POST" && url.pathname.startsWith("/sim/")) {
-      if (!["127.0.0.1", "::1", "::ffff:127.0.0.1"].includes(req.socket.remoteAddress ?? "")) { res.writeHead(403).end(); return; }
+      if (!local) { res.writeHead(403).end(); return; }
       let body = "";
       req.on("data", (c) => { body += c; if (body.length > 2048) req.destroy(); });
       req.on("end", () => {
         let json: Record<string, unknown> = {};
-        try { json = body ? (JSON.parse(body) as Record<string, unknown>) : {}; } catch { res.writeHead(400).end(); return; }
+        try {
+          const parsed: unknown = body ? JSON.parse(body) : {};
+          if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) throw new Error("not an object");
+          json = parsed as Record<string, unknown>;
+        } catch { res.writeHead(400).end(); return; }
         const action = url.pathname.slice(5);
         if (action === "drawer-open") apply({ type: "drawerOpened" });
         else if (action === "drawer-close") apply({ type: "drawerClosed" });

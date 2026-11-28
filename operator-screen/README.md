@@ -28,11 +28,17 @@ npm start          # builds, then serves on http://127.0.0.1:3000
 Open `/` for the screen (PINs `1234` or `4321`) and `/sim` in a second tab for the machine's physical side: open the drawer, close it, jam the gripper, clear the fault. A prescription goes through when you press Start, then open and close the drawer.
 
 ```
-npm test           # 47 unit tests, with coverage
-npm run e2e        # 11 real-browser tests (Chromium via Playwright)
+npm test           # 47 unit tests, with coverage (Node test runner)
+npm run e2e        # 23 Playwright tests: 12 API + 11 UI (builds and starts the server itself)
+npm run e2e:api    # API only: HTTP endpoints and the WebSocket protocol, no browser
+npm run e2e:ui     # UI only: real Chromium, touch enabled, 1280 x 800
 npm run lint       # design-token lint
 npm run typecheck
 ```
+
+All of these run on every push in [GitHub Actions](../.github/workflows/ci.yml); a failed Playwright run uploads its HTML report and traces.
+
+The Playwright suite is split in two projects. **API** tests call the server directly: which files it serves and with which headers, how the simulator endpoints validate input, and the WebSocket protocol (a new client gets the full state, rejections go only to the sender, every client sees every change, commands are refused during a fault). **UI** tests drive the screen in a real browser and check the flows and the touch rules. Writing the API tests caught two real bugs: the simulator page's script was never served, so its buttons did nothing, and the simulator accepted JSON that was not an object.
 
 ## How it is built
 

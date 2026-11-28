@@ -4,7 +4,9 @@
   "private": true,
   "type": "module",
   "description": "A touch-only operator screen for a simulated pharmacy machine. React 19, TypeScript, Tailwind 4. The screen owns no domain state: it renders what the machine sends over a WebSocket. All data is fake.",
-  "engines": { "node": ">=22.18" },
+  "engines": {
+    "node": ">=22.18"
+  },
   "scripts": {
     "contract": "node scripts/gen-contract.ts",
     "contract:check": "node scripts/gen-contract.ts --check",
@@ -12,8 +14,10 @@
     "build": "node scripts/gen-contract.ts --check && node scripts/build.ts",
     "start": "npm run build && node server/main.ts",
     "test": "node --test --experimental-test-coverage test/*.test.ts",
-    "e2e": "npm run build && node --test e2e/*.test.ts",
-    "typecheck": "tsc --noEmit"
+    "e2e": "playwright test",
+    "typecheck": "tsc --noEmit",
+    "e2e:ui": "playwright test --project=ui",
+    "e2e:api": "playwright test --project=api"
   },
   "dependencies": {
     "react": "^19.2.0",
