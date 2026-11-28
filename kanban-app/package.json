@@ -3,10 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Full-stack Kanban board with sign-in. Plain Node and JavaScript, no dependencies. A learning project.",
-  "engines": { "node": ">=18" },
+  "description": "Full-stack Kanban board with sign-in. Plain Node and JavaScript, no runtime dependencies. A learning project.",
+  "engines": {
+    "node": ">=18"
+  },
   "scripts": {
     "start": "node server.js",
-    "test": "node --test"
+    "test": "node --test",
+    "e2e": "playwright test",
+    "e2e:api": "playwright test --project=api",
+    "e2e:ui": "playwright test --project=ui"
+  },
+  "devDependencies": {
+    "playwright": "^1.50.0"
   }
 }

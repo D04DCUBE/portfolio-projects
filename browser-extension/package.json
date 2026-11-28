@@ -1,0 +1,10 @@
+{
+  "name": "browser-extension",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Sign-in Safety Check: a Manifest V3 learning project. Tested with the unpacked extension loaded into Chromium.",
+  "scripts": {
+    "e2e": "playwright test --config playwright.config.mjs"
+  },
+  "devDependencies": { "playwright": "^1.50.0" }
+}

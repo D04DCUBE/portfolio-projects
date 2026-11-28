@@ -1,6 +1,7 @@
 // <ds-dialog heading="Delete item?"> ... <ds-button slot="actions">Cancel</ds-button> </ds-dialog>
 // Built on the native <dialog> element and showModal(), which gives us for free:
-//   focus moves into the dialog, Tab is trapped inside, Esc closes it, the page behind is inert,
+//   focus moves into the dialog, Tab never reaches the page behind (it is inert; Tab cycles the dialog and
+//   the browser's own controls), Esc closes it,
 //   and focus returns to the element that opened it.
 // We add: a labelled heading, backdrop-click to close, and a re-dispatched "close" event.
 

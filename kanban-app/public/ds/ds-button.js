@@ -29,7 +29,8 @@ template.innerHTML = `
 
 class DsButton extends HTMLElement {
   static formAssociated = true;
-  static observedAttributes = ["disabled"];
+  // aria-label on <ds-button> is forwarded to the inner <button>, where assistive tech reads it.
+  static observedAttributes = ["disabled", "aria-label"];
   #internals;
   #button;
 
@@ -49,8 +50,15 @@ class DsButton extends HTMLElement {
   get disabled() { return this.hasAttribute("disabled"); }
   set disabled(v) { this.toggleAttribute("disabled", Boolean(v)); }
 
-  attributeChangedCallback() { this.#button.disabled = this.disabled; }
-  connectedCallback() { this.#button.disabled = this.disabled; }
+  #sync() {
+    this.#button.disabled = this.disabled;
+    const label = this.getAttribute("aria-label");
+    if (label) this.#button.setAttribute("aria-label", label);
+    else this.#button.removeAttribute("aria-label");
+  }
+
+  attributeChangedCallback() { this.#sync(); }
+  connectedCallback() { this.#sync(); }
 }
 
 customElements.define("ds-button", DsButton);

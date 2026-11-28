@@ -1,0 +1,12 @@
+{
+  "name": "design-system",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Design tokens and four accessible Web Components. No build step. A learning project.",
+  "scripts": {
+    "start": "node e2e/static-server.mjs",
+    "test": "node scripts/contrast.js",
+    "e2e": "playwright test --config playwright.config.mjs"
+  },
+  "devDependencies": { "playwright": "^1.50.0" }
+}

@@ -192,6 +192,11 @@ export function createApp({ store = createStore(), secureCookies = false, limits
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 3000;
   const file = process.env.DATA_FILE || join(__dirname, "data", "db.json");
-  createApp({ store: createStore(file), secureCookies: process.env.COOKIE_SECURE === "1" })
+  createApp({
+    store: createStore(file),
+    secureCookies: process.env.COOKIE_SECURE === "1",
+    // Rate limits can be raised for automated test runs only; the defaults apply otherwise.
+    limits: { loginMax: Number(process.env.LOGIN_MAX) || undefined, signupMax: Number(process.env.SIGNUP_MAX) || undefined },
+  })
     .listen(port, "127.0.0.1", () => console.log(`Kanban running at http://localhost:${port}`));
 }

@@ -188,5 +188,6 @@ export function createApp({ provider = createProvider(), limits = {} } = {}) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const port = Number(process.env.PORT) || 3100;
-  createApp().listen(port, "127.0.0.1", () => console.log(`AI chat on http://localhost:${port} (provider: ${process.env.PROVIDER || "fake"})`));
+  // CHAT_PER_MINUTE raises the per-IP limit for automated test runs only.
+  createApp({ limits: { chatPerMinute: Number(process.env.CHAT_PER_MINUTE) || undefined } }).listen(port, "127.0.0.1", () => console.log(`AI chat on http://localhost:${port} (provider: ${process.env.PROVIDER || "fake"})`));
 }

@@ -10,32 +10,45 @@ permissions:
   contents: read
 
 jobs:
-  unit:
-    name: Unit tests · ${{ matrix.project }}
+  project:
+    name: ${{ matrix.project }} · unit + Playwright
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        project: [agent-eval-lab, ai-chat, kanban-app, notes-app, realtime-chat, training-dashboard]
+        project: [agent-eval-lab, ai-chat, kanban-app, notes-app, realtime-chat, training-dashboard, design-system, browser-extension]
     defaults:
       run:
         working-directory: ${{ matrix.project }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
-      - run: npm test
+      - run: npm install --no-audit --no-fund
+      - name: Unit tests
+        run: npm test --if-present
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Playwright API + UI tests
+        run: npm run e2e
+      - name: Upload Playwright report
+        if: ${{ failure() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ matrix.project }}
+          path: ${{ matrix.project }}/playwright-report
+          retention-days: 14
 
   operator-screen:
-    name: Operator screen · checks, unit, Playwright UI + API
+    name: operator-screen · checks, unit + Playwright
     runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: operator-screen
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
         with:
           node-version: 22
       - run: npm install --no-audit --no-fund
@@ -54,9 +67,9 @@ jobs:
       - name: Playwright UI tests
         run: npx playwright test --project=ui
       - name: Upload Playwright report
-        if: ${{ !cancelled() }}
+        if: ${{ failure() }}
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-report
+          name: playwright-report-operator-screen
           path: operator-screen/playwright-report
           retention-days: 14
